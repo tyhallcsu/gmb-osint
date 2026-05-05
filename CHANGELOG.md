@@ -1,5 +1,23 @@
 # Changelog
 
+## v13.2 — 2026-05-05
+
+- **Strip URL tracking parameters** from extracted Website + social-profile
+  URLs. Businesses commonly tag their GMB website link with `utm_source`,
+  `utm_medium`, `utm_campaign` (or click IDs like `gclid`/`fbclid`/`msclkid`)
+  and these were leaking into copies/exports. New `stripTrackingParams()`
+  utility removes:
+  - the entire `utm_*` family + `utm_creative_format` / `utm_marketing_tactic`
+  - ad-network click IDs: `gclid`, `gclsrc`, `dclid`, `wbraid`, `gbraid`,
+    `fbclid`, `msclkid`, `yclid`, `twclid`, `ttclid`
+  - email/MAP trackers: `mc_cid`/`mc_eid`, `_hsenc`/`_hsmi`/`_hsfp`,
+    `mkt_tok`, `vero_*`, `oly_*`
+  - social trackers: `igshid`, `igsh`, `ref_src`, `ref_url`, `epik`
+  - GA: `_ga`, `_gl`
+  - Matomo / HSA Google Ads
+  Generated URLs (the ones we construct ourselves) are unaffected since they
+  carry no trackers by definition.
+
 ## v13.1 — 2026-05-05
 
 - **Fix: Website often "Not found"** in modern Knowledge Panels. The Website

@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Extract Google Business Data (v13)
 // @namespace    https://github.com/tyhallcsu/gmb-osint
-// @version      13.1
+// @version      13.2
 // @description  Extract Google Business Profile data from Knowledge Panel + generate PlePer-style CID/Place ID links and exports (JSON/CSV/Markdown/embed) in a slide-out workbench panel.
 // @author       sharmanhall
 // @match        https://www.google.com/search*
@@ -20,7 +20,7 @@
     // ------------------------------------------------------------------
     // Constants
     // ------------------------------------------------------------------
-    const VERSION = '13.1';
+    const VERSION = '13.2';
     const PANEL_ID = 'gmb-osint-panel';
     const INJECT_ID = 'gmb-osint-injected';
     const TOAST_ID = 'gmb-osint-toast';
@@ -53,6 +53,61 @@
             clearTimeout(t);
             t = setTimeout(() => fn.apply(this, args), wait);
         };
+    }
+
+    // Tracking parameters to strip from extracted external URLs.
+    // Generated URLs (we construct ourselves) never carry trackers, so this
+    // only runs on extracted website + social-profile links.
+    const TRACKING_PARAMS = new Set([
+        // UTM family (Google Analytics / Urchin)
+        'utm_source', 'utm_medium', 'utm_campaign', 'utm_term', 'utm_content',
+        'utm_id', 'utm_name', 'utm_brand', 'utm_social', 'utm_social-type',
+        'utm_creative_format', 'utm_marketing_tactic',
+        // Ad-network click IDs
+        'gclid', 'gclsrc', 'dclid', 'wbraid', 'gbraid',
+        'fbclid', 'fb_action_ids', 'fb_action_types', 'fb_source', 'fb_ref',
+        'msclkid', 'yclid', 'twclid', 'ttclid',
+        // Email / marketing automation
+        'mc_cid', 'mc_eid',
+        '_hsenc', '_hsmi', '_hsfp', 'hsCtaTracking',
+        'mkt_tok',
+        'vero_conv', 'vero_id',
+        'oly_anon_id', 'oly_enc_id',
+        's_cid',
+        // Social
+        'igshid', 'igsh', 'ref_src', 'ref_url',
+        // Pinterest / Microsoft / etc.
+        'epik',
+        // Google Ads HSA
+        'hsa_acc', 'hsa_cam', 'hsa_grp', 'hsa_ad', 'hsa_src', 'hsa_tgt',
+        'hsa_kw', 'hsa_mt', 'hsa_net', 'hsa_ver',
+        // Matomo / Piwik
+        'pk_campaign', 'pk_kwd', 'pk_source', 'pk_medium', 'pk_content',
+        'mtm_campaign', 'mtm_keyword', 'mtm_source', 'mtm_medium',
+        'mtm_content', 'mtm_cid',
+        // GA4
+        '_ga', '_gl',
+    ]);
+
+    function stripTrackingParams(url) {
+        if (!url) return url;
+        try {
+            const u = new URL(url);
+            // Collect keys to delete (also catches any utm_*/fb_* we missed).
+            const toDelete = [];
+            for (const k of u.searchParams.keys()) {
+                const lower = k.toLowerCase();
+                if (TRACKING_PARAMS.has(lower) || lower.startsWith('utm_')) {
+                    toDelete.push(k);
+                }
+            }
+            if (!toDelete.length) return url;
+            for (const k of toDelete) u.searchParams.delete(k);
+            const qs = u.searchParams.toString();
+            return u.origin + u.pathname + (qs ? '?' + qs : '') + (u.hash || '');
+        } catch (_) {
+            return url;
+        }
     }
 
     function cidToHex(cidDecimal) {
@@ -434,7 +489,7 @@
                 if (!a || !a.href) continue;
                 const real = unwrapGoogle(a.href);
                 if (/^https?:\/\//.test(real) && !isExcludedHost(real)) {
-                    return { value: real, source: sel };
+                    return { value: stripTrackingParams(real), source: sel };
                 }
             } catch (_) {}
         }
@@ -447,7 +502,7 @@
                 if (text !== 'Website') continue;
                 const real = unwrapGoogle(a.href);
                 if (/^https?:\/\//.test(real) && !isExcludedHost(real)) {
-                    return { value: real, source: 'a:text=Website' };
+                    return { value: stripTrackingParams(real), source: 'a:text=Website' };
                 }
             }
         } catch (_) {}
@@ -460,7 +515,7 @@
                 if (a) {
                     const real = unwrapGoogle(a.href);
                     if (/^https?:\/\//.test(real) && !isExcludedHost(real)) {
-                        return { value: real, source: '[data-attrid*=website] a' };
+                        return { value: stripTrackingParams(real), source: '[data-attrid*=website] a' };
                     }
                 }
             }
@@ -479,7 +534,7 @@
                     if (!real || !/^https?:\/\//.test(real)) continue;
                     if (isExcludedHost(real)) continue;
                     return {
-                        value: real,
+                        value: stripTrackingParams(real),
                         source: 'kp-scope scan',
                         note: 'first non-social external link near title; verify',
                     };
@@ -554,7 +609,7 @@
                 for (const [key, re] of patterns) {
                     if (found[key]) continue;
                     if (re.test(host + new URL(href).pathname)) {
-                        found[key] = href.split('#')[0];
+                        found[key] = stripTrackingParams(href.split('#')[0]);
                     }
                 }
             }
