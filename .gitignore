@@ -1,0 +1,21 @@
+# Local reference material — kept out of the public repo
+*.png
+*.jpg
+*.jpeg
+*.pdf
+*.webloc
+
+# OS / editor
+.DS_Store
+Thumbs.db
+*.swp
+*.swo
+.idea/
+.vscode/
+
+# Node (if anyone ever adds tooling)
+node_modules/
+npm-debug.log*
+yarn-error.log*
+.env
+.env.local
