@@ -1,10 +1,45 @@
-# gmb-osint
+<p align="center"><img src="assets/readme-hero.webp" alt="Business Profile Workbench — conceptual illustration for the project guide" width="1200"></p>
+
+# Business Profile Workbench
+
+**Inspect what the page exposes. Export what you can verify.**
+
+[![Access](https://img.shields.io/badge/access-public-334155)](https://github.com/tyhallcsu/gmb-osint) [![License](https://img.shields.io/badge/license-MIT-487b6a)](LICENSE)
+
+[Start here](#start-here) · [Reference](#project-reference)
+
+<a id="start-here"></a>
+
+A userscript for turning a Google Business Profile Knowledge Panel into a structured research workbench. The current checked-in v13 script declares **version 13.2**. Start on a Google Search business Knowledge Panel; Maps support is more limited, as detailed below.
+
+## Your first useful export
+
+1. Follow [Install](#install) with Tampermonkey or Violentmonkey, using the **v13 file in this repository**.
+2. Search Google for the business and open the workbench from the tab at the right edge.
+3. Check the business identity and each field's status. “Generated” means a locally constructed link; “best-effort” means you need to check the destination.
+4. Copy an individual value or export JSON, CSV, Markdown, URLs, embed code or a handoff summary.
+
+## Choose an output
+
+| You need… | Use |
+| --- | --- |
+| Structured data for another tool | JSON or CSV |
+| A readable research note | Markdown report or handoff summary |
+| A particular Maps or reviews destination | Individual copy or the all-URLs export |
+| A website embed | Responsive embed snippet; verify it before publication |
+| To explain an absent field | Debug mode and [known limitations](#known-limitations) |
+
+The [Greasy Fork page](https://greasyfork.org/en/scripts/475060-extract-google-business-data-v12) is the historical **v12** release, not the current v13 install source. Local export generation does not verify every generated external destination; opening a copied URL contacts that destination.
+
+[Install](#install) · [Field sources](#whats-extracted-vs-generated) · [Limitations](#known-limitations) · [Development](#development) · [Credits](#credits)
+
+## Project reference
 
 A Tampermonkey / Violentmonkey userscript that pulls Google Business Profile
 data out of the Knowledge Panel on `google.com/search` and turns it into a
 copy/paste workbench: identifiers, all the PlePer-style URL variants, social
 profiles, a responsive embed snippet, and JSON / CSV / Markdown exports — all
-generated locally with no API key and no third-party calls.
+generated locally with no API key. Opening generated links contacts their destinations; the userscript metadata also references a Google-hosted favicon.
 
 > **v13** is a near-rewrite of v12 (the original
 > [Greasy Fork release](https://greasyfork.org/en/scripts/475060-extract-google-business-data-v12)).
