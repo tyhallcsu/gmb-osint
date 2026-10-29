@@ -19,3 +19,9 @@ npm-debug.log*
 yarn-error.log*
 .env
 .env.local
+
+# Local scratch scripts with live API tokens — never commit
+token.sh
+*.token
+.env
+.env.*
